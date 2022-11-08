@@ -10,8 +10,8 @@ class Search extends React.Component {
     nome: '',
     isLoad: false,
     response: [],
+    artist: '',
     noAlbum: false,
-    artista: '',
 
   };
 
@@ -21,7 +21,7 @@ class Search extends React.Component {
     this.setState({
       nome: target.value,
       isButtonDisabled: nome.length < 1,
-      artista: target.value,
+      artist: target.value,
     }, () => {
     });
   };
@@ -47,7 +47,7 @@ class Search extends React.Component {
   };
 
   render() {
-    const { nome, isButtonDisabled, isLoad, response, noAlbum, artista } = this.state;
+    const { nome, isButtonDisabled, isLoad, artist, response, noAlbum } = this.state;
     return (
       <div data-testid="page-search">
         <Header />
@@ -73,7 +73,7 @@ class Search extends React.Component {
         )}
         <h3>
           {
-            `Resultado de álbuns de: ${artista}`
+            `Resultado de álbuns de: ${artist}`
           }
         </h3>
 
