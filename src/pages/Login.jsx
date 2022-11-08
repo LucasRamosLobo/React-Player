@@ -20,7 +20,7 @@ class Login extends React.Component {
     });
   };
 
-  buttonRequisicao = async () => {
+  buttonReq = async (event) => {
     const { nome } = this.state;
     const { history } = this.props;
     this.setState(({
@@ -28,9 +28,8 @@ class Login extends React.Component {
     }));
     await createUser({ name: nome });
     history.push('/search');
+    event.preventDefault();
   };
-
-  // Botão habilitado caso o nome digitado tenha 3 ou mais caracteres
 
   render() {
     const { nome, isButtonDisabled, isLoading } = this.state;
@@ -38,7 +37,7 @@ class Login extends React.Component {
     return (
       <div data-testid="page-login">
         { isLoading ? (
-          <form>
+          <form onSubmit={ this.buttonReq }>
             <input
               data-testid="login-name-input"
               value={ nome }
@@ -49,7 +48,7 @@ class Login extends React.Component {
               type="button"
               data-testid="login-submit-button"
               disabled={ isButtonDisabled }
-              onClick={ this.buttonRequisicao }
+              onClick={ this.buttonReq }
             >
               Entrar
             </button>

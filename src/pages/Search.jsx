@@ -1,142 +1,105 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import Header from '../components/Header';
 import searchAlbumsAPI from '../services/searchAlbumsAPI';
 import Loading from './Loading';
-import Header from '../components/Header';
 
 class Search extends React.Component {
   state = {
-    isInputValid: false,
-    searchArtistInput: '',
-    artistName: '',
-    isLoading: false,
-    isRequesting: false,
-    albuns: [],
+    isButtonDisabled: true,
+    nome: '',
+    isLoad: false,
+    response: [],
+    noAlbum: false,
+    artista: '',
+
   };
 
-  // componentDidMount() {
-  //   this.showLoading();
-  // }
-
-  handleDisableButton = () => {
-    const { searchArtistInput } = this.state;
-    const min = 2;
-    const isSearchValid = searchArtistInput.length >= min;
-    this.setState({ isInputValid: isSearchValid });
-  };
-
-  onInputChangeInput = (event) => {
-    const { value } = event.target;
+  handleChange = (event) => {
+    const { nome } = this.state;
+    const { target } = event;
     this.setState({
-      searchArtistInput: value,
-    }, this.handleDisableButton);
-  };
-
-  // showLoading = () => {
-  //   const loadingTime = 2000;
-  //   this.setState({ isLoading: true });
-  //   setTimeout(() => {
-  //     this.setState({ isLoading: false });
-  //   }, loadingTime);
-  // };
-
-  //   showLoadingInRequest = () => {
-  //   const loadingTime = 2000;
-  //   setTimeout(() => <Loading />, loadingTime);
-  // };
-
-  handleFetch = () => {
-    const { searchArtistInput } = this.state;
-    const loadingTime = 1500;
-    this.setState({ isRequesting: true });
-    searchAlbumsAPI(searchArtistInput).then((res) => this.setState({
-      albuns: res,
-      searchArtistInput: '',
-    }));
-    setTimeout(() => this.setState({ isRequesting: false }), loadingTime);
-  };
-
-  handleSearch = async (e) => {
-    const { searchArtistInput } = this.state;
-    e.preventDefault();
-    this.setState({
-      artistName: searchArtistInput,
+      nome: target.value,
+      isButtonDisabled: nome.length < 1,
+      artista: target.value,
+    }, () => {
     });
-    this.handleFetch();
+  };
+
+  botao = async (event) => {
+    event.preventDefault();
+    const { nome } = this.state;
+    this.setState(({
+      isLoad: true,
+    }));
+    const albums = await searchAlbumsAPI(nome);
+    console.log(albums);
+    this.setState({
+      nome: '',
+      isLoad: false,
+      response: albums,
+    }, () => {
+      const { response } = this.state;
+      this.setState({
+        noAlbum: response.length === 0,
+      });
+    });
   };
 
   render() {
-    const { isInputValid, searchArtistInput, isLoading, artistName, albuns,
-      isRequesting } = this.state;
-
-    const searchPage = (
-      <form action="" method="get">
-        <label htmlFor="searchArtistInput">
-          <input
-            data-testid="search-artist-input"
-            type="text"
-            name="searchArtistInput"
-            value={ searchArtistInput }
-            onChange={ this.onInputChangeInput }
-          />
-        </label>
-        <button
-          data-testid="search-artist-button"
-          disabled={ !isInputValid }
-          type="submit"
-          onClick={ this.handleSearch }
-        >
-          Pesquisar
-        </button>
-      </form>
-    );
-
-    const resultsAlbuns = (
-      <>
-        <p className="title-results">
-          { `Resultado de álbuns de:
-            ${artistName}` }
-        </p>
-        <ul className="album-list">
-          {albuns.map((album) => (
-            <li
-              className="album-item"
-              key={ album.collectionId }
-            >
-              { this.renderAlbum(album) }
-            </li>
-          ))}
-        </ul>
-      </>
-    );
-
+    const { nome, isButtonDisabled, isLoad, response, noAlbum, artista } = this.state;
     return (
       <div data-testid="page-search">
         <Header />
-        { isLoading ? <Loading />
-          : (
-            <>
-              <section>{ searchPage }</section>
-              <section>
-                {artistName
-                && (
-                  isRequesting ? <Loading />
-                    : (
-                      <div>
-                        { albuns.length === 0
-                          ? (
-                            <p className="title-results">
-                              Nenhum álbum foi encontrado
-                            </p>
-                          )
-                          : resultsAlbuns }
-                      </div>
-                    ))}
-              </section>
-            </>
-          ) }
+        { isLoad ? <Loading /> : (
+
+          <form>
+            <input
+              data-testid="search-artist-input"
+              value={ nome }
+              onChange={ this.handleChange }
+              placeholder="Nome da banda"
+              type="text"
+            />
+            <button
+              type="button"
+              data-testid="search-artist-button"
+              disabled={ isButtonDisabled }
+              onClick={ this.botao }
+            >
+              Pesquisar
+            </button>
+          </form>
+        )}
+        <h3>
+          {
+            `Resultado de álbuns de: ${artista}`
+          }
+        </h3>
+
+        {
+          noAlbum && <h4>Nenhum álbum foi encontrado</h4>
+        }
+
+        {
+          response.map((element) => (
+            <div key={ element.collectionName }>
+              <h2>
+                {element.artistName}
+              </h2>
+              <img src={ element.artworkUrl100 } alt={ element.artistName } />
+              <Link
+                data-testid={ `link-to-album-${element.collectionId}` }
+                to={ `album/${element.collectionId}` }
+              >
+                { element.collectionName }
+              </Link>
+            </div>
+          ))
+        }
+
       </div>
     );
   }
 }
-
 export default Search;
