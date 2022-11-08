@@ -1,6 +1,7 @@
 import React from 'react';
 import searchAlbumsAPI from '../services/searchAlbumsAPI';
 import Loading from './Loading';
+import Header from '../components/Header';
 
 class Search extends React.Component {
   state = {
@@ -110,6 +111,7 @@ class Search extends React.Component {
 
     return (
       <div data-testid="page-search">
+        <Header />
         { isLoading ? <Loading />
           : (
             <>
