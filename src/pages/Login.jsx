@@ -1,78 +1,66 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import Loading from './Loading';
+import PropTypes from 'prop-types';
 import { createUser } from '../services/userAPI';
+import Loading from './Loading';
 
 class Login extends React.Component {
   state = {
-    isNameValid: false,
-    loginNameInput: '',
-    isLoading: false,
+    nome: '',
+    isButtonDisabled: true,
+    isLoading: true,
   };
 
-  handleDisableButton = () => {
-    const { loginNameInput } = this.state;
-    const min = 3;
-    const isLoginValid = loginNameInput.length >= min;
-    this.setState({ isNameValid: isLoginValid });
-  };
-
-  onInputChangeInput = (event) => {
-    const { value } = event.target;
+  handleChange = (event) => {
+    const { nome } = this.state;
+    const { target } = event;
     this.setState({
-      loginNameInput: value,
-    }, this.handleDisableButton);
+      nome: target.value,
+      isButtonDisabled: nome.length < 2,
+    }, () => {
+    });
   };
 
-  handleFetch = () => {
-    const { loginNameInput } = this.state;
-    this.setState({ isLoading: true });
-    createUser({ name: loginNameInput }).then(this.setState({ isLoading: false }));
-  };
-
-  handleLogin = async (e) => {
-    e.preventDefault();
+  buttonRequisicao = async () => {
+    const { nome } = this.state;
     const { history } = this.props;
-    this.handleFetch();
+    this.setState(({
+      isLoading: false,
+    }));
+    await createUser({ name: nome });
     history.push('/search');
   };
 
+  // Botão habilitado caso o nome digitado tenha 3 ou mais caracteres
+
   render() {
-    const { isNameValid, loginNameInput, isLoading } = this.state;
-    const loginPage = (
-      <form action="" method="get">
-        <label htmlFor="loginNameInput">
-          <input
-            data-testid="login-name-input"
-            type="text"
-            name="loginNameInput"
-            value={ loginNameInput }
-            onChange={ this.onInputChangeInput }
-          />
-        </label>
-        <button
-          data-testid="login-submit-button"
-          disabled={ !isNameValid }
-          type="submit"
-          onClick={ this.handleLogin }
-        >
-          Entrar
-        </button>
-      </form>
-    );
+    const { nome, isButtonDisabled, isLoading } = this.state;
 
     return (
       <div data-testid="page-login">
-        { isLoading ? <Loading /> : loginPage }
+        { isLoading ? (
+          <form>
+            <input
+              data-testid="login-name-input"
+              value={ nome }
+              onChange={ this.handleChange }
+              type="text"
+            />
+            <button
+              type="button"
+              data-testid="login-submit-button"
+              disabled={ isButtonDisabled }
+              onClick={ this.buttonRequisicao }
+            >
+              Entrar
+            </button>
+          </form>
+        ) : <Loading />}
       </div>
     );
   }
 }
 
 Login.propTypes = {
-  history: PropTypes.shape({
-    push: PropTypes.func.isRequired,
-  }).isRequired,
+  history: PropTypes.string.isRequired,
 };
-
 export default Login;
